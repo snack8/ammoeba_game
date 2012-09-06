@@ -1,0 +1,48 @@
+<html>
+<head>
+
+<link rel="stylesheet" type="text/css" href="ammoebagame.css" />
+
+<!-- Libraries -->
+<!-- Uncomment to use online jquery 
+  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>  
+-->
+<script type="text/javascript" src="js/jquery-1.8.1.min.js"></script>
+<script type="text/javascript" src="js/jcanvas.min.js"></script>
+
+
+<!-- Client side -->
+<script type="text/javascript" src="js/ammoebaclient.js"></script>
+
+
+<!-- Fake server -->
+<script type="text/javascript" src="js/ammoebaserver.js"></script>
+
+
+
+<!---- Trash, delete me --->
+<script type="text/javascript" src="js/fingaround.js"></script>
+
+<script type="text/javascript" >
+
+  // Link this page up to the game using jQuery on-ready func
+  $(function (){
+  
+    var $game = $("#gameContainer");
+    $game.ammoeba( {} ).ammoeba("start");
+
+  });
+
+</script>
+
+</head>
+<body>
+
+<h1>Reed's jQuery Ammoeba game v0.0.0.0.1</h1>
+
+<center>
+  <div id='gameContainer'></div>
+</center>
+
+</body>
+</html>

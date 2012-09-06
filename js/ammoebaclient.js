@@ -15,11 +15,10 @@
     var serverInUse = "local" // when the time comes, replace with "remote" to use ajax instead
     var $gameCanvas;
     var gameBoard;
-
-    var directions = { 'down'  : [0,  1],
-		       'left'  : [-1, 0],
-		       'up'    : [0, -1],
-		       'right' : [1,  0] };
+    var timeoutID;
+    var curDir = "down";
+    var gamePaused = false;
+    
 
     var settings =  { 'cols'        : 20,
 		      'rows'        : 20,
@@ -57,11 +56,10 @@
 	    return $this; // Maintain chainability
 	},
 
-	start : startGame,
+	start   : startGame,
 
-	pause : function () { /*stub*/ }, // Pause Game!
-
-	reset : function () { /*stub*/ }  // Reset Game!
+	pause   : pauseGame, // Should Pause Game!
+	unpause : unPauseGame // Should unpause (only when paused)
     };
     
     // Creates plugin forealz
@@ -78,15 +76,17 @@
 	}
     };
 
-    // Private functions follow
+    // Private (to the plugin) functions follow
     function buildGame($container) {
         var h = settings["height"];
 	var w = settings["width"];
 	var c = settings["cols"];
 	var r = settings["rows"];
 
+
+
 	$gameCanvas = $("<canvas>").attr("height", h).attr("width",  w).
-	    attr("tabindex", '0').blur(methods.pause);
+	    attr("tabindex", '0').blur(methods.pause).focus(methods.unpause);
 
 	$container.html("").append($gameCanvas);
 
@@ -95,17 +95,12 @@
 
 	// Get the first update!
         if (serverInUse = "local") {
-	    gameBoard = serverUpdate();
+	    redraw(serverUpdate());
 	}
-
-	redraw();
     }
     
-
-
-
     function keyHandler(e) {
-	var dir = gameState['nextDir'];
+	var dir = curDir;
 	var code = e ? e.keyCode : -1;
 	switch(code) {
 	case 37: // Left Arrow
@@ -122,7 +117,8 @@
 	    break;
 	}
 	
-	gameState['nextDir'] = dir;
+	curDir = dir;
+	return dir;
     }
 
 
@@ -130,7 +126,7 @@
      * These functions (redraw(), drawBlank()) are all for painting the game
      **/
 
-    function redraw() {
+    function redraw(gameBoard) {
         var h = settings["height"];
 	var w = settings["width"];
 	var c = settings["cols"];
@@ -138,28 +134,22 @@
 
 	$gameCanvas.clearCanvas();
 
-	for(var i = 0; i < r; i++) {
-	    for(var j = 0; j < c; j++) {
-		var x = (w/c)*j;
-		var y = (h/r)*i;
-		if (gameBoard[i][j] > 0) {
-		    drawSnake($gameCanvas, x, y);
-		} else if (gameBoard[i][j] == 0) {
-		    drawEmpty($gameCanvas, x, y);
-		} else if (gameBoard[i][j] == -1) {
-		    drawApple($gameCanvas, x, y);
-		}
+	for(var i = 1; i < r - 1; i++) {
+	    for(var j = 1; j < c - 1; j++) {
+		var x = (w/c) * j;
+		var y = (h/r) * i;
+		$gameCanvas.drawText({
+			strokeStyle: "#1f1",
+			    x: x,
+			    y: y,
+			    text: gameBoard[i][j] % 10,
+			    fromCenter: false,
+			    rotate: 10 });
 	    }
 	}
 	
 	
     }
-
-    function drawSnake($can, _x, _y) {
-	$can.drawArc({ fillStyle: "black",
-		    x: _x , y: _y, radius: settings["height"]/settings["rows"]/2, fromCenter:false });
-    }
-
 
     function drawEmpty($can, _x, _y, w) {
 	$can.drawRect({ strokeStyle: "#CCCCFF",
@@ -170,32 +160,43 @@
 		    
     }
 
-    function drawApple($can, _x, _y) {
-	$can.drawArc({ fillStyle: "#FF00FF",
-		    x: _x , y: _y, radius: settings["height"]/settings["rows"]/2 });
-    }
 
-    
 
 
     /**
      * advance(), runner(), and startGame() are all for running the app
      **/
-    function advance(t) {
-	gameBoard = serverUpdate();
-
-	redraw();
-    }
-
-    function runner(delay, t) {
-	t = t || 0; // begin time at zero
-	advance(t);
-	var timeoutID = window.setTimeout(runner, delay, delay, t + 1);
+    function advance() {
+	redraw(serverUpdate());
     }
     
     function startGame() {
-	runner(settings['delay']);
+	timeoutID = setInterval(advance, settings['delay']);
     }
+
+    function pauseGame() {
+	gamePaused = true;
+	clearInterval(timeoutID);
+	$gameCanvas.clearCanvas().drawText({
+		strokeStyle: "#1f1",
+		    x: settings["width"]/3,
+		    y: settings["height"]/3,
+		    text: "Paused!",
+		    fromCenter: false,
+		    rotate: 20 });
+    }
+
+    function unPauseGame() {
+	if (gamePaused) {
+	    startGame();
+	    gamePaused = false;
+	}
+
+    }
+
+
+
+
     // END Private Functions
 })( jQuery );
 

@@ -14,6 +14,8 @@
     // Private static variables
     var serverInUse = "local" // when the time comes, replace with "remote" to use ajax instead
     var $gameCanvas;
+    var $myQueueCanvas;
+    var myQueue = [];
     var gameBoard;
     var timeoutID;
     var curDir = "down";
@@ -24,7 +26,7 @@
 		      'rows'        : 20,
 		      'height'      : 500,
 		      'width'       : 500,
-		      'delay'       : 300 };
+		      'delay'       : 1000 };
 
     // Public methods
     var methods = {
@@ -57,8 +59,7 @@
 	},
 
 	start   : startGame,
-
-	pause   : pauseGame, // Should Pause Game!
+	pause   : pauseGame,  // Should Pause Game!
 	unpause : unPauseGame // Should unpause (only when paused)
     };
     
@@ -83,12 +84,13 @@
 	var c = settings["cols"];
 	var r = settings["rows"];
 
-
-
 	$gameCanvas = $("<canvas>").attr("height", h).attr("width",  w).
 	    attr("tabindex", '0').blur(methods.pause).focus(methods.unpause);
 
-	$container.html("").append($gameCanvas);
+	$myQueueCanvas = $("<canvas>").attr("height", 50).attr("width",  w).
+	    attr("tabindex", '0').blur(methods.pause).focus(methods.unpause);
+
+	$container.html("").append($gameCanvas).append($("<br />")).append($myQueueCanvas);
 
 	// Add keyhandlers
 	$(document).keydown(keyHandler);
@@ -115,7 +117,22 @@
 	case 40: // Down Arrow
 	    dir = "down";
 	    break;
+	case 49:
+	case 50:
+	case 51:
+	case 52:
+	case 53: // 49 - 57 map to keys 1 - 9
+	case 54:
+	case 55:
+	case 56:
+	case 57:
+	    // Handle number keys with code - 48
+	    break;
+	case 48: // Number 0, pretending it's 10
+	    // Handle number keys with 10
+	    break;
 	}
+	
 	
 	curDir = dir;
 	return dir;
@@ -151,6 +168,14 @@
 	
     }
 
+    function animateMyQueue($can) {
+	$can.animateLayer("queueBackground", { props }, 250, "swing", function () {;});
+    }
+
+    function drawQueue($can) {
+	$can.addLayer({ method: " 
+    }
+
     function drawEmpty($can, _x, _y, w) {
 	$can.drawRect({ strokeStyle: "#CCCCFF",
 		    x: _x, y: _y, 
@@ -181,9 +206,9 @@
 		strokeStyle: "#1f1",
 		    x: settings["width"]/3,
 		    y: settings["height"]/3,
-		    text: "Paused!",
+		    text: "Paused! Click to continue!",
 		    fromCenter: false,
-		    rotate: 20 });
+		    rotate: 10 });
     }
 
     function unPauseGame() {

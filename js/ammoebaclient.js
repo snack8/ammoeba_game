@@ -15,18 +15,25 @@
     var serverInUse = "local" // when the time comes, replace with "remote" to use ajax instead
     var $gameCanvas;
     var $myQueueCanvas;
-    var myQueue = [];
+
     var gameBoard;
     var timeoutID;
     var curDir = "down";
     var gamePaused = false;
-    
+    var myQueue;    
+    var queueElementCounter = 0;
 
     var settings =  { 'cols'        : 20,
 		      'rows'        : 20,
-		      'height'      : 500,
-		      'width'       : 500,
+		      'canHeight'   : 500,
+		      'canWidth'    : 500,
+		      'queueHeight' : 50,
+		      'queueWidth'  : 500,
+		      'queueLength' : 10,
 		      'delay'       : 1000 };
+    
+
+    // end private static variables
 
     // Public methods
     var methods = {
@@ -79,16 +86,25 @@
 
     // Private (to the plugin) functions follow
     function buildGame($container) {
-        var h = settings["height"];
-	var w = settings["width"];
+        var h = settings['canHeight'];
+	var w = settings['canWidth'];
 	var c = settings["cols"];
 	var r = settings["rows"];
+	var len = settings['queueLength'];
 
-	$gameCanvas = $("<canvas>").attr("height", h).attr("width",  w).
+	// Create Game canvas and Queue canvas
+	$gameCanvas = $("<canvas>").attr('height', h).attr('width',  w).
 	    attr("tabindex", '0').blur(methods.pause).focus(methods.unpause);
 
-	$myQueueCanvas = $("<canvas>").attr("height", 50).attr("width",  w).
+	$myQueueCanvas = $("<canvas>").attr('height', settings['queueHeight']).attr('width',  w).
 	    attr("tabindex", '0').blur(methods.pause).focus(methods.unpause);
+
+	// Create queue and fill it with zeros, denoting all empty
+	myQueue = new Array(len);
+	
+	for (var i = 0; i < len; i++) {
+	    myQueue[i] = 0;
+	}
 
 	$container.html("").append($gameCanvas).append($("<br />")).append($myQueueCanvas);
 
@@ -101,6 +117,8 @@
 	}
     }
     
+
+
     function keyHandler(e) {
 	var dir = curDir;
 	var code = e ? e.keyCode : -1;
@@ -126,10 +144,12 @@
 	case 55:
 	case 56:
 	case 57:
-	    // Handle number keys with code - 48
+	    // Handle number keys with code - 49
+	    addToQueue(code - 49);
 	    break;
 	case 48: // Number 0, pretending it's 10
-	    // Handle number keys with 10
+	    // Handle number keys with 9
+	    addToQueue(9);
 	    break;
 	}
 	
@@ -139,13 +159,25 @@
     }
 
 
+    // Eventually this will take a value to add to the queue as well...
+    function addToQueue(index) {
+	if (myQueue[index] == 0) {
+	    myQueue[index] =  {text:queueElementCounter++};
+	    return true;
+	}
+	// Space was not empty, so nothing added
+	return false;
+    }
+
+
+
     /**
      * These functions (redraw(), drawBlank()) are all for painting the game
      **/
 
     function redraw(gameBoard) {
-        var h = settings["height"];
-	var w = settings["width"];
+        var h = settings['canHeight'];
+	var w = settings['canWidth'];
 	var c = settings["cols"];
 	var r = settings["rows"];
 
@@ -165,22 +197,60 @@
 	    }
 	}
 	
-	
+	drawQueue($myQueueCanvas);
     }
 
-    function animateMyQueue($can) {
+    // Should create the effect of the entire queue "sliding" to the left
+    /* NOT FINISHED   function animateMyQueue($can) {
 	$can.animateLayer("queueBackground", { props }, 250, "swing", function () {;});
-    }
+	}*/
 
     function drawQueue($can) {
-	$can.addLayer({ method: " 
+	var h = settings['queueHeight'];
+	var w = settings['queueWidth'];
+	var len = settings['queueLength'];
+
+	// Draw the background pattern
+	// queueBackgroundPattern must be created and stored previously
+	$can.drawRect({ fillStyle: queueBackgroundPattern,
+		    repeat: "repeat-x",
+		    x: 0, y:0, width: w + (w/len), height: h });*/
+
+	var elWidth = (w / len);
+
+
+	for (var i = 0; i < len; i++) {
+	    if (myQueue[i] != 0) {
+		// Fill in the queue elements
+		$can.drawText({
+			fillStyle: "black",
+			    font: "20pt Verdana, sans-serif",
+			    x: (i * elWidth) + (elWidth / 2) - 3,
+			    y: h/3,
+			    text: myQueue[i].text,
+			    fromCenter: false});
+
+	    }
+
+	    // Draw out indices.	    
+	    $can.drawText({
+		    fillStyle: "black",
+			font: "8pt Verdana, sans-serif",
+			x: (i * elWidth) + (elWidth / 2),
+			y: h - (2*h /10 ),
+			text: i + 1,
+			fromCenter: false});
+	    
+	}
     }
+
+    
 
     function drawEmpty($can, _x, _y, w) {
 	$can.drawRect({ strokeStyle: "#CCCCFF",
 		    x: _x, y: _y, 
-		    width: settings["width"]/settings["cols"],
-		    height: settings["height"]/settings["rows"],
+		    width: settings['canWidth']/settings["cols"],
+		    height: settings['canHeight']/settings["rows"],
 		    fromCenter: false });
 		    
     }
@@ -198,18 +268,20 @@
     function startGame() {
 	timeoutID = setInterval(advance, settings['delay']);
     }
-
+	    
     function pauseGame() {
 	gamePaused = true;
 	clearInterval(timeoutID);
 	$gameCanvas.clearCanvas().drawText({
 		strokeStyle: "#1f1",
-		    x: settings["width"]/3,
-		    y: settings["height"]/3,
+		    x: settings['canWidth']/3,
+		    y: settings['canHeight']/3,
 		    text: "Paused! Click to continue!",
 		    fromCenter: false,
 		    rotate: 10 });
     }
+    
+
 
     function unPauseGame() {
 	if (gamePaused) {

@@ -1,7 +1,7 @@
 var ALL_GAME_TOKENS = 
 {
-    north : {text:"North", token: "N"},
-    south : {text:"South", token: "S"},
-    east  : {text:"East", token:  "E"}
-    west  : {text:"West", token:  "W"},
+    north : {dir:"north", token: "N"},
+    south : {dir:"south", token: "S"},
+    east  : {dir:"east", token:  "E"},
+    west  : {dir:"west", token:  "W"}
 };

@@ -1,7 +1,7 @@
 /**
  * Starting with something simple: 
- *   Simply return an environment changed each call, so
- *   we can see the "server" churning
+ *   Resolves 1 timestep per call to serverUpdate()
+ *   
  *
  **/
 
@@ -147,18 +147,20 @@ function serverInit() {
 	    userQueue : globals.game.queues.user};
 }
 
-function createGrid() {
+function createGrid(initVal) {
     var r = globals.game.rows;
     var c = globals.game.cols;
     var grid = new Array(c);
     for (var i = 0; i < r; i++) {
 	grid[i] = new Array(c);
 	for (var j = 0; j < c; j++) {
-	    grid[i][j] = 0;
+	    grid[i][j] = initVal;
 	}
     }
     return grid;
 }
+
+
 
 function copyGrid(g) {
     var r = globals.game.rows;

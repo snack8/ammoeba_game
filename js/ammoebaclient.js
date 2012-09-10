@@ -16,6 +16,7 @@
     var $gameCanvas;
     var $myQueueCanvas;
 
+    var curSelection = 0;  // 0-9
     var gameState;
     var timeoutID;
     var curDir = "down";
@@ -31,7 +32,7 @@
 		      'queueHeight' : 50,
 		      'queueWidth'  : 500,
 		      'queueLength' : 10,
-		      'delay'       : 1000 };
+		      'delay'       : 300 };
     
 
     // end private static variables
@@ -126,19 +127,19 @@
 	switch(code) {
 	case 37: // Left Arrow
 	    dir = "west";
-	    addAction(1, dir);
+	    addAction(1 + curSelection, dir);
 	    break;
 	case 38: // Up Arrow
 	    dir = "north";
-	    addAction(1, dir);
+	    addAction(1 + curSelection, dir);
 	    break;
 	case 39: // Right Arrow
 	    dir = "east";
-	    addAction(1, dir);
+	    addAction(1 + curSelection, dir);
 	    break;
 	case 40: // Down Arrow
 	    dir = "south";
-	    addAction(1, dir);
+	    addAction(1 + curSelection, dir);
 	    break;
 	case 49:
 	case 50:
@@ -150,11 +151,11 @@
 	case 56:
 	case 57:
 	    // Handle number keys with code - 49
-	    addAction(code - 49);
+	    changeSelection(code - 49);
 	    break;
 	case 48: // Number 0, pretending it's 10
 	    // Handle number keys with 9
-	    addAction(9);
+	    changeSelection(9);
 	    break;
 	}
 	
@@ -195,6 +196,8 @@
 
 	$gameCanvas.clearCanvas();
 
+
+
 	for(var i = 1; i < r - 1; i++) {
 	    for(var j = 1; j < c - 1; j++) {
 		var x = (w/c) * j;
@@ -224,9 +227,25 @@
 	    }
 	}
 	
+
 	drawQueue($myQueueCanvas);
     }
+    
+    function changeSelection(index) {
+	curSelection = index;
+    }
 
+    function drawSelection($can) {
+	$can.drawRect({strokeStyle: "#99ff99",
+		    strokeWidth: 6,
+		    x: (settings["queueWidth"] / 10) * curSelection,
+		    y:0,
+		    height: settings["queueHeight"],
+		    width:  settings["queueWidth"] / 10,
+		    fromCenter:false,
+		    cornerRadius: 10,});
+	
+    }
     // Should create the effect of the entire queue "sliding" to the left
     /* NOT FINISHED   
        function animateMyQueue($can) {
@@ -247,6 +266,7 @@
 	var elWidth = (w / len);
 	$can.clearCanvas();
 
+	drawSelection($can);
 
 	for (var i = 0; i < len; i++) {
 	    if (myQueue[i]) {
@@ -254,7 +274,7 @@
 		$can.drawText({
 			fillStyle: "black",
 			    font: "20pt Verdana, sans-serif",
-			    x: (i * elWidth) + (elWidth / 2) - 3,
+			    x: ( (myQueue[i].timestep - timestep) * elWidth) + (elWidth / 2) - 3,
 			    y: h/3,
 			    text: myQueue[i].token.token,
 			    fromCenter: false});
@@ -291,7 +311,7 @@
      * advance(), runner(), and startGame() are all for running the app
      **/
 
-    /**
+    /** 
      * advance() uses serverUpdate() if using the local server
      * serverUpdate should pass the current timestep and an array of
      * { timestep: integer, token: tokenName }
